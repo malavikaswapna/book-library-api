@@ -1,0 +1,15 @@
+{
+// Configure your Run and Preview buttons here.
+
+// Run button configuration
+  "commands": {
+        "Node version": "node --version",
+        "Start VSCode": "PASSWORD=$CODIO_HOSTNAME code-server --auth password --bind-addr 0.0.0.0:8080 ~/workspace"
+  },
+
+// Preview button configuration
+  "preview": {
+        "Launch VSCode": "https://{{domain8080}}/",
+        "Box URL": "https://{{domain1026}}/"
+  }
+}

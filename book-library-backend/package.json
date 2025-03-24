@@ -1,0 +1,44 @@
+{
+  "name": "book-library-api",
+  "version": "1.0.0",
+  "description": "A RESTful API for managing a book library, including user authentication, book details and reviews.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "jest --detectOpenHandles"
+  },
+  "keywords": [],
+  "author": "Malavika Swapna",
+  "license": "ISC",
+  "dependencies": {
+    "@koa/cors": "^5.0.0",
+    "auth": "^1.2.3",
+    "axios": "^1.8.4",
+    "basic": "^2.0.3",
+    "basic-auth": "^2.0.1",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^16.4.7",
+    "jsonwebtoken": "^9.0.2",
+    "koa": "^2.16.0",
+    "koa-bodyparser": "^4.4.1",
+    "koa-compress": "^5.1.1",
+    "koa-conditional-get": "^3.0.0",
+    "koa-etag": "^4.0.0",
+    "koa-jwt": "^4.0.4",
+    "koa-logger": "^3.2.1",
+    "koa-ratelimit": "^5.1.0",
+    "koa-router": "^13.0.1",
+    "koa2-swagger-ui": "^5.11.0",
+    "mysql2": "^3.14.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.4.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-koa": "^0.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.1.0"
+  }
+}

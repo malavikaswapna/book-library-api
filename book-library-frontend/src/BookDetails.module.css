@@ -1,0 +1,164 @@
+/* BookDetails.module.css */
+
+.container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #fae9f2;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  .bookImage {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    margin: 20px 0;
+  }
+  
+  .bookTitle {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .bookDetails {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 15px;
+  }
+  
+  .description {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #444;
+    text-align: justify;
+    padding: 10px;
+    border-left: 5px solid #007bff;
+    background: #eef6ff;
+    border-radius: 5px;
+  }
+  
+  .rating {
+    font-size: 20px;
+    font-weight: bold;
+    color: #cb3771;
+  }
+  
+  .genre {
+    font-size: 18px;
+    font-weight: bold;
+    color: #1c809e;
+    background: #c5d8ff;
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    margin-top: 10px;
+  }
+  
+  .reviews {
+    margin-top: 30px;
+    text-align: left;
+  }
+  
+  .reviewItem {
+    background: #fff;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .reviewText {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 5px;
+  }
+  
+  .reviewRating {
+    font-size: 18px;
+    color: #ff9800;
+    font-weight: bold;
+  }
+  
+  .backButton {
+    background-color: #3d6d7b;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+  
+  .backButton:hover {
+    background-color: #295461;
+  }
+
+  .reviewForm {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+
+  .formGroup {
+    margin-bottom: 15px;
+  }
+
+  .formGroup label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+
+  .formGroup textarea, .formGroup select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+
+  .submitButton {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  .reviewList {
+    list-style: none;
+    padding: 0;
+  }
+
+  .reviewItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+  }
+
+  .reviewContent {
+    flex-grow: 1;
+  }
+
+  .deleteReviewButton {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-left: 10px;
+  }

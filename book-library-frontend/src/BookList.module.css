@@ -1,0 +1,304 @@
+/* BookList.module.css */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #FFDEE9 0%, #B5EAEA 100%);
+    padding: 20px;
+  }
+  
+  /* Loading message */
+  .loading {
+    font-size: 20px;
+    color: #333;
+    font-weight: bold;
+  }
+  
+  /* Book grid container */
+  .booksGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+  }
+  
+  /* Style for each book card */
+  .bookCard {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  }
+  
+  .bookCard:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Book title */
+  .bookTitle {
+    font-size: 1.5rem;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  /* Author name */
+  .bookAuthor {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 10px;
+  }
+  
+  /* Published year */
+  .bookYear {
+    font-size: 1rem;
+    color: #777;
+  }
+  
+  /* Card hover effect */
+  .bookCard:hover {
+    background-color: #f7f7f7;
+  }
+  
+  .userBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin-bottom: 20px;
+    background-color: white;
+    border-radius: 8px;
+    padding: 12px 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .welcomeMessage {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .logoutButton {
+    background-color: #ff85a2;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .logoutButton:hover {
+    background-color: #e87eaf;
+  }
+  
+  .pageTitle {
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .roleTag {
+    display: incline-block;
+    font-size: 14px;
+    color: #ff85a2;
+    font-weight: bold;
+    margin-left: 5px;
+  }
+
+  .editorControls {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto 20px;
+  }
+
+  .addBookButton {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+  }
+
+  .addBookButton:hover {
+    background-color: #45a049;
+  }
+
+  .addBookForm {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .formGroup {
+    margin-bottom: 15px;
+  }
+
+  .formGroup label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+  }
+
+  .formGroup input, .formGroup textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+
+  .formActions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+
+  .formHelp {
+    display: block;
+    font-size: 12px;
+    color: #666;
+    margin-top: 3px;
+  }
+
+  .submitButton {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .cancelButton {
+    background-color: #f44336;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .bookActions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+
+  .editButton, .deleteButton {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .editButton {
+    background-color: #2196f3;
+    color: white;
+  }
+
+  .deleteButton {
+    background-color: #f44336;
+    color: white;
+  }
+
+  .bookInfo {
+    cursor: pointer;
+  }
+
+  .userTable {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .userTable table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .userTable th, .userTable td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
+
+  .userTable th {
+    background-color: #f8f8f8;
+    font-weight: 600;
+  }
+
+  .userTable tr:last-child td {
+    border-bottom: none;
+  }
+
+  .roleSelect {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+  }
+
+  .adminButton {
+    background-color: #9c27b0;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    margin: 10px 0 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+  }
+
+  .adminButton:hover {
+    background-color: #7b1fa2;
+  }
+
+  .adminPanel {
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .userAction {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .deleteUserButton {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+  }
+
+  .deleteUserButton:hover {
+    background-color: #d32f2f;
+  }

@@ -1,0 +1,127 @@
+/* Login.module.css */
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f8f8f8;
+    background-image: url('https://i.imgur.com/UPtNMEu.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    font-family: 'Arial', sans-serif;
+    background-attachment: fixed;
+  }
+
+  /* Card Form Styling */
+  .card {
+    background-color: rgba(255, 255, 255, 0.9);  /* Slight transparency to let background shine through */
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 350px;
+    animation: fadeIn 1s ease-in-out;
+    box-sizing: border-box;
+  }
+  
+  /* Animation for fade-in effect */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Title of the form */
+  .title {
+    font-size: 2rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #3d6d7b;  /* Soft blue */
+    letter-spacing: 1px;
+  }
+  
+  /* Input Fields */
+  .inputField {
+    width: 100%;
+    padding: 1rem;
+    margin: 0.75rem 0;
+    border: 2px solid #e87eaf;  /* Cute pink */
+    border-radius: 15px;
+    font-size: 1rem;
+    background-color: #fef6f9;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-sizing: border-box;
+  }
+  
+  .inputField:focus {
+    outline: none;
+    border-color: #ff85a2;
+    box-shadow: 0 0 0 4px rgba(255, 133, 162, 0.2);
+  }
+  
+  /* Button Styling */
+  .button {
+    width: 100%;
+    padding: 1rem;
+    background-color: #ff85a2;  /* Soft pink */
+    color: white;
+    border: none;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  
+  .button:hover {
+    background-color: #ff607b;  /* A deeper pink */
+    transform: translateY(-3px);
+  }
+  
+  .button:active {
+    transform: translateY(1px);
+  }
+  
+  /* Error Message */
+  .errorMessage {
+    color: #ff4747;
+    text-align: center;
+    margin-top: 1rem;
+  }
+  
+  .loading {
+    text-align: center;
+    margin-top: 1rem;
+  }
+  
+  footer {
+    margin-top: 2rem;
+    text-align: center;
+    color: #3d6d7b;
+  }
+
+  .linkText {
+    text-align: center;
+    margin-top: 15px;
+    color: #555;
+  }
+  
+  .link {
+    color: #ff85a2;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  .link:hover {
+    text-decoration: underline;
+  }
+  
+  
