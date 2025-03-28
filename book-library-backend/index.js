@@ -24,10 +24,30 @@ const app = new Koa();
 const router = new Router();
 
 // Middleware setup
-app.use(cors({ origin: '*' }));
-app.use(bodyParser());
 app.use(conditional());
 app.use(etag());
+app.use(async (ctx, next) => {
+  await next();
+
+  if (ctx.method === 'GET' && (ctx.status === 200 || ctx.status === 304) && ctx.body) {
+
+    if (!ctx.response.get('ETag')) {
+      const bodyString = JSON.stringify(ctx.body);
+      const etag = `"${Buffer.from(bodyString).toString('base64')}"`;
+      ctx.set('ETag', etag);
+    }
+
+    const ifNoneMatch = ctx.request.get ('If-None-Match');
+    if (ifNoneMatch && ifNoneMatch === ctx.response.get('ETag')) {
+      ctx.status = 304;
+      ctx.body = null;
+    }
+  }
+});
+
+
+app.use(cors({ origin: '*' }));
+app.use(bodyParser());
 app.use(logger());
 
 app.use(compress({
@@ -79,9 +99,10 @@ router.get('/docs', swaggerUi.koaSwagger({
 // Apply all routes
 app.use(router.routes()).use(router.allowedMethods());
 
+app.use(jwtAuth);
+
 // Protected Routes (Require Authentication)
 app.use(bookRoutes.routes()).use(bookRoutes.allowedMethods());
-
 app.use(adminRoutes.routes()).use(adminRoutes.allowedMethods());
 
 // Create HTTP server

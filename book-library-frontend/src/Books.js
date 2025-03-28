@@ -50,7 +50,7 @@ function Books() {
           alert("Your session has expired. Please login again.");
           navigate('/');
         } else {
-        alert("Failed to fetch books.");
+          alert("Failed to fetch books.");
         }
       } finally {
         setLoading(false); 
@@ -112,8 +112,10 @@ function Books() {
           title: '',
           author: '',
           published_year: '',
+          book_picture: '',
           book_description: '',
-          genre: ''
+          genre: '',
+          average_rating: 0
         });
       }
     } catch (error) {
@@ -134,12 +136,16 @@ function Books() {
   };
 
   const handleDeleteBook = async (bookId) => {
+    console.log("Delete button clicked for book ID:", bookId);
+
     if (!window.confirm("Are you sure you want to delete this book?")) {
+      console.log("User cancelled deletion");
       return;
     }
 
     const token = localStorage.getItem('token');
     if (!token) {
+      console.log("No token found, redirecting to login");
       navigate('/');
       return;
     }
@@ -152,7 +158,13 @@ function Books() {
         }
       );
 
-      setBooks(books.filter(book => book.id !== bookId));
+      const response = await axios.get('https://harlembazaar-londonfiber-1025.codio-box.uk/books', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      setBooks(response.data.books || []);
     } catch (error) {
       console.error("Error deleting book:", error);
       if (error.response && error.response.status === 403) {
@@ -182,12 +194,22 @@ function Books() {
             </span>
           )}
         </div>
-        <button 
-          onClick={handleLogout} 
-          className={styles.logoutButton}
+        <div className={styles.navActions}>
+        <a  
+            href="https://harlembazaar-londonfiber-1025.codio-box.uk/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.docsLink}
         >
-          Logout
-        </button>
+            API Docs
+          </a>  
+          <button 
+            onClick={handleLogout} 
+            className={styles.logoutButton}
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       <h1 className={styles.pageTitle}>Book Library</h1>
@@ -215,7 +237,7 @@ function Books() {
             </button>
           ) : (
             <div className={styles.addBookForm}>
-              <h2> Add New Book</h2>
+              <h2>Add New Book</h2>
               <form onSubmit={handleAddBook}>
                 <div className={styles.formGroup}>
                   <label>Title:</label>
@@ -307,7 +329,7 @@ function Books() {
       </RoleBasedComponent>
 
       {loading ? (
-        <p className={styles.loading}>Loading books...</p>  // Loading message
+        <p className={styles.loading}>Loading books...</p>
       ) : books.length > 0 ? (
         <div className={styles.booksGrid}>
           {books.map((book) => (
@@ -316,26 +338,25 @@ function Books() {
               className={styles.bookCard} 
             >
               <div
-              className={styles.bookInfo}
-              onClick={() => navigateToBook(book)}
+                className={styles.bookInfo}
+                onClick={() => navigateToBook(book)}
               >
-          
-              <h3 className={styles.bookTitle}>{book.title}</h3>
-              <p className={styles.bookAuthor}>by {book.author}</p>
-              <p className={styles.bookYear}>Published: {book.published_year}</p>
+                <h3 className={styles.bookTitle}>{book.title}</h3>
+                <p className={styles.bookAuthor}>by {book.author}</p>
+                <p className={styles.bookYear}>Published: {book.published_year}</p>
 
-              {/* Display average rating */}
-              {book.average_rating && (
-                <p className={styles.bookRating}>Rating: {book.average_rating} ⭐</p>
-              )}
+                {/* Display average rating */}
+                {book.average_rating && (
+                  <p className={styles.bookRating}>Rating: {book.average_rating} ⭐</p>
+                )}
 
-              {/* Display genre */}
-              {book.genre && (
-                <p className={styles.bookGenre}>Genre: {book.genre}</p>
-              )}
-            </div>
+                {/* Display genre */}
+                {book.genre && (
+                  <p className={styles.bookGenre}>Genre: {book.genre}</p>
+                )}
+              </div>
 
-            <RoleBasedComponent requiredRole="editor">
+              <RoleBasedComponent requiredRole="editor">
                 <div className={styles.bookActions}>
                   <button 
                     className={styles.editButton}
@@ -368,11 +389,3 @@ function Books() {
 }
 
 export default Books;
-
-
-
-
-
-
-
-

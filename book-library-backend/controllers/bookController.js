@@ -21,6 +21,7 @@ exports.getBooks = async (ctx) => {
     }
   };
 
+
 } catch (error) {
   console.error("Error fetching books:", error);  // Log error if any
   ctx.status = 500;
@@ -129,8 +130,35 @@ exports.updateBook = async (ctx) => {
 // ✅ Delete a book (also deletes related reviews)
 exports.deleteBook = async (ctx) => {
   const { id } = ctx.params;
-  await db.query("DELETE FROM books WHERE id = ?", [id]);
-  ctx.body = { message: "Book and its reviews deleted successfully" };
+
+  try {
+    const result = await db.query("DELETE FROM books WHERE id = ?", [id]);
+
+    if (result.affectedRows === 0) {
+      ctx.status = 404;
+      ctx.body = {
+        message: "Book not found",
+        _links: {
+          collection: { href: '/books' }
+        }
+      };
+      return;
+    }
+    
+    ctx.body = { 
+      message: "Book and its reviews deleted successfully",
+      _links: {
+        collection: { href: '/books' }
+      }
+    };
+  } catch (error) {
+    console.error("Error deleting book:", error);
+    ctx.status = 500;
+    ctx.body = {
+      message: "Failed to delete book",
+      error: error.message
+    };
+  }
 };
 
 // ✅ Get all reviews for a specific book
@@ -171,9 +199,9 @@ exports.addReviewForBook = async (ctx) => {
   const { review_text, rating } = ctx.request.body;
 
   // Check if review_text and rating are provided
-  if (!review_text || !rating) {
+  if (!review_text || !rating || rating < 1 || rating > 5) {
     ctx.status = 400;
-    ctx.body = { message: "Both review_text and rating are required" };
+    ctx.body = { message: "Review_text is required and rating must be between 1 and 5" };
     return;
   }
 
