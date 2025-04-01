@@ -8,6 +8,8 @@ import { getUserRole } from './userUtils';
 function Books() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line no-unused-vars
+  const [etags, setEtags] = useState({})
   const [showAddForm, setShowAddForm] = useState(false);
   const [newBook, setNewBook] = useState({
     title: '',
@@ -18,15 +20,38 @@ function Books() {
     genre: '',
     average_rating: 0
   });
+
+  const [filters, setFilters] = useState({
+    author: '',
+    genre: '',
+    year: '',
+    title: ''
+  });
+  const [showFilters, setShowFilters] = useState(false);
+
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  // eslint-disable-next-line no-unused-vars
+  const [paginationLinks, setPaginationLinks] = useState({});
+
+
+  const [refreshCounter, setRefreshCounter] = useState(0);
+  const refreshBooks = () => {
+    setRefreshCounter(prevCounter => prevCounter + 1);
+  };
+
   const navigate = useNavigate();
   const userRole = getUserRole();
 
   useEffect(() => {
     const fetchBooks = async () => {
       console.log("Fetching books...");
-
+      setLoading(true);
+  
       const token = localStorage.getItem('token');
-
+  
       if (!token) {
         console.warn("No token found in localStorage");
         navigate('/login'); 
@@ -34,31 +59,108 @@ function Books() {
       }
 
       try {
-        const response = await axios.get('https://harlembazaar-londonfiber-1025.codio-box.uk/books', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
 
+        const queryParams = new URLSearchParams();
+        queryParams.append('page', page);
+        queryParams.append('limit', limit);
+
+        if (filters.author) queryParams.append('author', filters.author);
+        if (filters.genre) queryParams.append('genre', filters.genre);
+        if (filters.year) queryParams.append('year', filters.year);
+        if (filters.title) queryParams.append('title', filters.title);
+
+        const headers = {
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache'
+        };
+        
+        const storedEtag = localStorage.getItem(`books_etag_${queryParams.toString()}`);
+        if (storedEtag) {
+          headers['If-None-Match'] = storedEtag;
+          console.log(`Using stored ETag: ${storedEtag}`);
+        }
+
+        const response = await axios.get(
+          `https://harlembazaar-londonfiber-1025.codio-box.uk/books?${queryParams.toString()}`,
+          { headers }
+        );
+
+      if (response.status === 200) {
         console.log("Response received:", response.data);
         setBooks(response.data.books || []);
-      } catch (error) {
-        console.error("Error fetching books:", error);
+        setTotalPages(response.data.total_pages || 1);
+        setTotalItems(response.data.total_items || 0);
+        setPaginationLinks(response.data._links || {});
 
-        if (error.response && error.response.status === 401) {
-          localStorage.removeItem('token');
-          alert("Your session has expired. Please login again.");
-          navigate('/');
-        } else {
-          alert("Failed to fetch books.");
+        const etag = response.headers.etag;
+        if (etag) {
+          console.log(`Storing ETag: ${etag}`);
+          localStorage.setItem(`books_etag_${queryParams.toString()}`, etag);
         }
-      } finally {
-        setLoading(false); 
+      } else if (response.status === 304) {
+        console.log("304 Not Modified - Using cached data");
+
+        const cachedBooksData = JSON.parse(localStorage.getItem(`books_data_${queryParams.toString()}`) || '[]');
+        if (cachedBooksData.length > 0) {
+          setBooks(cachedBooksData);
+        }
       }
-    };
+    } catch (error) {
+      console.error("Error fetching books:", error);
+
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page);
+      queryParams.append('limit', limit);
+      if (filters.author) queryParams.append('author', filters.author);
+      if (filters.genre) queryParams.append('genre', filters.genre);
+      if (filters.year) queryParams.append('year', filters.year);
+      if (filters.title) queryParams.append('title', filters.title);
+
+      if (error.response && error.response.status === 304) {
+        console.log("304 Not Modified - Using cached data");
+
+        const cachedBooksData = JSON.parse(localStorage.getItem(`books_data_${queryParams.toString()}`) || '[]');
+        if (cachedBooksData.length > 0) {
+          setBooks(cachedBooksData);
+        }
+      }else if (error.response && error.response.status === 401) {
+       localStorage.removeItem('token');
+       alert("Your session has expired. Please login again.");
+       navigate('/');
+      } else {
+        alert("Failed to fetch books.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
     fetchBooks();
-  }, [navigate]);
+  }, [navigate, refreshCounter, page, limit, filters]);
+
+  useEffect(() => {
+    if (books.length > 0) {
+      localStorage.setItem(`books_data_${page}_${limit}`, JSON.stringify(books));
+    }
+  }, [books, page, limit]);
+
+  useEffect(() => {
+    const shouldRefresh = localStorage.getItem('refreshBooks') === 'true';
+    if (shouldRefresh) {
+      localStorage.removeItem('refreshBooks');
+      refreshBooks();
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.refreshBooksList = refreshBooks;
+
+    return () => {
+      delete window.refreshBooksList;
+    };
+  }, []);
+
 
   const navigateToBook = (book) => {
     if (book._links && book._links.self && book._links.self.href) {
@@ -67,6 +169,14 @@ function Books() {
     } else {
       navigate(`/book/${book.id}`);
     }
+  };
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   // Add logout function
@@ -183,6 +293,57 @@ function Books() {
     });
   };
 
+  const renderPaginationControls = () => {
+    return (
+      <div className={styles.pagination}>
+        <button 
+          onClick={() => setPage(1)} 
+          disabled={page === 1}
+          className={styles.paginationButton}
+        >
+          First
+        </button>
+        <button 
+          onClick={() => setPage(page - 1)} 
+          disabled={page === 1}
+          className={styles.paginationButton}
+        >
+          Previous
+        </button>
+        <span className={styles.pageInfo}>
+          Page {page} of {totalPages} ({totalItems} total books)
+        </span>
+        <button 
+          onClick={() => setPage(page + 1)} 
+          disabled={page === totalPages}
+          className={styles.paginationButton}
+        >
+          Next
+        </button>
+        <button 
+          onClick={() => setPage(totalPages)} 
+          disabled={page === totalPages}
+          className={styles.paginationButton}
+        >
+          Last
+        </button>
+        <select 
+          value={limit} 
+          onChange={(e) => {
+            setLimit(Number(e.target.value));
+            setPage(1);
+          }}
+          className={styles.limitSelector}
+        >
+          <option value="5">5 per page</option>
+          <option value="10">10 per page</option>
+          <option value="20">20 per page</option>
+          <option value="50">50 per page</option>
+        </select>
+      </div>
+    );
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.userBar}>
@@ -214,6 +375,95 @@ function Books() {
 
       <h1 className={styles.pageTitle}>Book Library</h1>
 
+      <div className={styles.filterControls}>
+        <button 
+        className={styles.filterButton}
+        onClick={() => setShowFilters(!showFilters)}
+        >
+          {showFilters ? 'Hide Filters' : 'Show Filters'}
+          </button>
+          
+          {showFilters && (
+          <div className={styles.filterForm}>
+            <div className={styles.filterRow}>
+              <div className={styles.filterField}>
+                <label>Title:</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={filters.title}
+                  onChange={handleFilterChange}
+                  placeholder="Filter by title..."
+                />
+              </div>
+
+              <div className={styles.filterField}>
+                <label>Author:</label>
+                <input
+                  type="text"
+                  name="author"
+                  value={filters.author}
+                  onChange={handleFilterChange}
+                  placeholder="Filter by author..."
+                />
+              </div>
+            </div>
+            
+            <div className={styles.filterRow}>
+              <div className={styles.filterField}>
+                <label>Genre:</label>
+                <input
+                  type="text"
+                  name="genre"
+                  value={filters.genre}
+                  onChange={handleFilterChange}
+                  placeholder="Filter by genre..."
+                />
+              </div>
+              
+              <div className={styles.filterField}>
+                <label>Year:</label>
+                <input
+                  type="number"
+                  name="year"
+                  value={filters.year}
+                  onChange={handleFilterChange}
+                  placeholder="Filter by year..."
+                />
+              </div>
+            </div>
+            
+            <div className={styles.filterActions}>
+              <button
+                className={styles.applyFiltersButton}
+                onClick={() => {
+                  setPage(1);
+                  refreshBooks();
+                }}
+              >
+                Apply Filters
+              </button>
+              
+              <button
+                className={styles.clearFiltersButton}
+                onClick={() => {
+                  setFilters({
+                    author: '',
+                    genre: '',
+                    year: '',
+                    title: ''
+                  });
+                  setPage(1);
+                  refreshBooks();
+                }}
+              >
+                Clear Filters  
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      
       <RoleBasedComponent requiredRole="admin">
         <div className={styles.adminPanel}>
           <h2>Admin Panel</h2>
@@ -384,6 +634,7 @@ function Books() {
       ) : (
         <p>No books available.</p>
       )}
+      {!loading && books.length > 0 && renderPaginationControls()}
     </div>
   );
 }

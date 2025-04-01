@@ -40,7 +40,7 @@ function Login() {
       if (response.data.token) {
         // Save username and password in localStorage only once
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('username', username);
+        localStorage.setItem('username', response.data.user?.username || 'testuser');
 
         localStorage.removeItem('password');
 

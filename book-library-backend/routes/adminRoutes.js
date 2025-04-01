@@ -1,11 +1,11 @@
 const Router = require('koa-router');
 const db = require('../db');
 const jwtAuth = require('../jwtMiddleware');
-const { authorize } = require('../rbac');
+const { authorize, checkScope } = require('../rbac');
 
 const router = new Router();
 
-router.put('/admin/users/:userId/role', jwtAuth, authorize('admin'), async (ctx) => {
+router.put('/admin/users/:userId/role', jwtAuth, checkScope('users:write'), async (ctx) => {
   const { userId } = ctx.params;
   const { role } = ctx.request.body;
 
@@ -49,7 +49,7 @@ router.put('/admin/users/:userId/role', jwtAuth, authorize('admin'), async (ctx)
   }
 });
 
-router.get('/admin/users', jwtAuth, authorize('admin'), async (ctx) => {
+router.get('/admin/users', jwtAuth, checkScope('users:read'), async (ctx) => {
   try {
     const [users] = await db.query(`
     SELECT u.id, u.username, r.name as role
@@ -78,7 +78,7 @@ router.get('/admin/users', jwtAuth, authorize('admin'), async (ctx) => {
   }
 });
 
-router.delete('/admin/users/:userId', jwtAuth, authorize('admin'), async(ctx) => {
+router.delete('/admin/users/:userId', jwtAuth, checkScope('users:delete'), async(ctx) => {
   const { userId } = ctx.params;
 
   try {

@@ -283,6 +283,106 @@ describe("Caching and conditional Requests", () => {
   });
 });
 
+//Test Pagination
+describe("Pagination", () => {
+  it("should limit results based on the limit parameter", async () => {
+    const response = await authRequest("user").get("/books?limit=2");
+    expect(response.status).toBe(200);
+    expect(response.body.books.length).toBeLessThanOrEqual(2);
+  });
+
+  it("should include pagination metadata", async () => {
+    const response = await authRequest("user").get("/books?page=1&limit=5");
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("page");
+    expect(response.body).toHaveProperty("limit");
+    expect(response.body).toHaveProperty("total_pages");
+    expect(response.body).toHaveProperty("total_items");
+  });
+
+  it("should navigate pages correctly", async () => {
+    const response1 = await authRequest("user").get("/books?page=1&limit=1");
+    expect(response1.status).toBe(200);
+
+    const response2 = await authRequest("user").get("/books?page=2&limit=1");
+    expect(response2.status).toBe(200);
+
+    if (response1.body.books.length > 0 && response2.body.books.length > 0) {
+      expect(response1.body.books[0].id).not.toEqual(response2.body.books[0].id);
+    }
+  });
+});
+
+//Test filtering
+describe("Filtering", () => {
+  let testAuthor;
+
+  beforeAll(async () => {
+    const [bookResponse] = await db.query("SELECT DISTINCT author FROM books LIMIT 1");
+    if (bookResponse.length > 0) {
+      testAuthor = bookResponse[0].author;
+    }
+  });
+
+  it("should filter by author", async () => {
+    if (!testAuthor) {
+      return;
+    }
+
+    const response = await authRequest("user").get(`/books?author=${encodeURIComponent(testAuthor)}`);
+    expect(response.status).toBe(200);
+    expect(response.body.books.length).toBeGreaterThan(0);
+
+    response.body.books.forEach(book => {
+      expect(book.author).toContain(testAuthor);
+    });
+  });
+
+  it("should filter by title", async () => {
+    const uniqueTitle = "UniqueTestTitle" + Date.now();
+    const createdBook = await authRequest("editor").post("/books", {
+      title: uniqueTitle,
+      author: "Test Author",
+      published_year: 2023
+    });
+
+    const response = await authRequest("user").get(`/books?title=${encodeURIComponent(uniqueTitle)}`);
+    expect(createdBook.status).toBe(201);
+    expect(response.status).toBe(200);
+    expect(response.body.books.length).toBe(1);
+    expect(response.body.books[0].title).toBe(uniqueTitle);
+  });
+});
+
+//Test ETag cache
+describe("ETag and Caching", () => {
+  it("should return 304 Not Modified when ETag matches", async () => {
+    const response1 = await authRequest("user").get("/books");
+    expect(response1.status).toBe(200);
+    expect(response1.headers).toHaveProperty("etag");
+
+    const etag = response1.headers.etag;
+
+    const response2 = await request(server)
+      .get("/books")
+      .set("Authorization", `Bearer ${tokens.user}`)
+      .set("If-None-Match", etag);
+
+    expect(response2.status).toBe(304);
+  });
+
+  it("should return full response when ETag doesn't match", async () => {
+
+    const response = await request(server)
+      .get("/books")
+      .set("Authorization", `Bearer ${tokens.user}`)
+      .set("If-None-Match", '"invalid-etag"');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("books");
+  });
+});
+
 afterAll(async () => {
   await db.end();
   

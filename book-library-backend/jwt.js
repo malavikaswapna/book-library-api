@@ -35,11 +35,24 @@ const generateToken = async (user) => {
   const role = userRoles.length ? userRoles[0].name : 'user';
   console.log(`Token will include role ${role}`);
 
+  let scopes = ['books:read', 'reviews:read', 'reviews:write'];
+    
+  if (role === 'editor' || role === 'admin') {
+    scopes = [...scopes, 'books:write', 'reviews:write', 'reviews:delete'];
+  }
+    
+  if (role === 'admin') {
+    scopes = [...scopes, 'users:read', 'users:write', 'users:delete'];
+  }
+    
+  console.log(`Token will include scopes: ${scopes.join(', ')}`);
+
   const token = jwt.sign(
     {
       id: user.id,
       username: user.username,
-      role: role
+      role: role,
+      scopes: scopes
     },
     JWT_SECRET,
     { expiresIn: '24h' }
@@ -54,7 +67,8 @@ const generateToken = async (user) => {
     { 
       id: user.id, 
       username: user.username,
-      role: 'user'
+      role: 'user',
+      scopes: ['books:read', 'reviews:read']
     },
     JWT_SECRET,
     { expiresIn: '24h' }
@@ -66,8 +80,6 @@ const generateToken = async (user) => {
 const verifyToken = (token) => {
   try {
     return jwt.verify(token, JWT_SECRET);
-    console.log('Token verified successfully:', decoded);
-    return decoded;
   } catch (error) {
     console.log('Token verification failed:', error.message);
     return null;

@@ -3,7 +3,45 @@ const db = require("../db");
 // ✅ Get all books
 exports.getBooks = async (ctx) => {
   try {
-  const [rows] = await db.query("SELECT * FROM books");
+
+  const page = parseInt(ctx.query.page) || 1;
+  const limit = parseInt(ctx.query.limit) || 10;
+  const offset = (page - 1) * limit;
+
+  const { author, genre, year, title } = ctx.query;
+
+  let query = "SELECT * FROM books WHERE 1=1";
+  const params = [];
+
+  if (author) {
+    query += " AND author LIKE ?";
+    params.push(`%${author}%`);
+  }
+
+  if (genre) {
+    query += " AND genre LIKE ?";
+    params.push(`%${genre}%`);
+  }
+
+  if (year) {
+    query += " AND published_year LIKE ?";
+    params.push(parseInt(year));
+  }
+
+  if (title) {
+    query += " AND title LIKE ?";
+    params.push(`%${title}%`);
+  }
+
+  const countQuery = query.replace("SELECT *", "SELECT COUNT(*) as total");
+  const [countResult] = await db.query(countQuery, params);
+  const totalBooks = countResult[0].total;
+  const totalPages = Math.ceil(totalBooks / limit);
+
+  query += " LIMIT ? OFFSET ?";
+  params.push(limit, offset);
+
+  const [rows] = await db.query(query, params);
   console.log("Books fetched:", rows);
 
   const booksWithLinks = rows.map(book => ({
@@ -14,11 +52,40 @@ exports.getBooks = async (ctx) => {
     }
   }));
 
+  let baseUrl = '/books?';
+  const queryParams = []
+  if (author) queryParams.push(`author=${encodeURIComponent(author)}`);
+  if (genre) queryParams.push(`genre=${encodeURIComponent(genre)}`);
+  if (year) queryParams.push(`year=${year}`);
+  if (title) queryParams.push(`title=${encodeURIComponent(title)}`);
+
+  const filterQueryString = queryParams.join('&');
+  if (filterQueryString) {
+    baseUrl += filterQueryString + '&';
+  }
+
+  const links = {
+    self: { href: `${baseUrl}?page=${page}&limit=${limit}` },
+    first: { href: `${baseUrl}page=1&limit=${limit}` },
+    last: { href: `${baseUrl}page=${totalPages}&limit=${limit}` }
+  };
+
+  if (page > 1) {
+    links.prev = { href: `${baseUrl}?page=${page - 1}&limit=${limit}` };
+  }
+
+  if (page < totalPages) {
+    links.next = { href: `${baseUrl}?page=${page + 1}&limit=${limit}` };
+  }
+
   ctx.body = {
     books: booksWithLinks,
-    _links: {
-      self: { href: '/books' }
-    }
+    _links: links,
+    page,
+    limit,
+    total_items: totalBooks,
+    total_pages: totalPages,
+    filters: { author, genre, year, title}
   };
 
 

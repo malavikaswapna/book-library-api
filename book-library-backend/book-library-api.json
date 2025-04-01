@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Book Library API",
-    "description": "An API to manage books and reviews in a library with JWT authentication and role-based access control.",
+    "description": "An API to manage books and reviews in a library with JWT authentication, scope-based authorization, and role-based access control.",
     "version": "1.0.0"
   },
   "components": {
@@ -10,7 +10,8 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT"
+        "bearerFormat": "JWT",
+        "description": "JWT token with role and scope-based authorization. Tokens include specific permission scopes based on the user's role."
       }
     },
     "schemas": {
@@ -50,6 +51,65 @@
           }
         }
       },
+      "BookList": {
+        "type": "object",
+        "properties": {
+          "books": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Book"
+            }
+          },
+          "_links": {
+            "type": "object",
+            "properties": {
+              "self": {
+                "type": "object",
+                "properties": {
+                  "href": { "type": "string" }
+                }
+              },
+              "first": {
+                "type": "object",
+                "properties": {
+                  "href": { "type": "string" }
+                }
+              },
+              "last": {
+                "type": "object",
+                "properties": {
+                  "href": { "type": "string" }
+                }
+              },
+              "next": {
+                "type": "object",
+                "properties": {
+                  "href": { "type": "string" }
+                }
+              },
+              "prev": {
+                "type": "object",
+                "properties": {
+                  "href": { "type": "string" }
+                }
+              }
+            }
+          },
+          "page": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "total_items": { "type": "integer" },
+          "total_pages": { "type": "integer" },
+          "filters": {
+            "type": "object",
+            "properties": {
+              "author": { "type": "string" },
+              "genre": { "type": "string" },
+              "year": { "type": "string" },
+              "title": { "type": "string" }
+            }
+          }
+        }
+      },
       "Review": {
         "type": "object",
         "properties": {
@@ -58,6 +118,34 @@
           "review_text": { "type": "string" },
           "rating": { "type": "integer" },
           "created_at": { "type": "string", "format": "date-time" },
+          "_links": {
+            "type": "object",
+            "properties": {
+              "self": {
+                "type": "object",
+                "properties": {
+                  "href": { "type": "string" }
+                }
+              },
+              "book": {
+                "type": "object",
+                "properties": {
+                  "href": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ReviewList": {
+        "type": "object",
+        "properties": {
+          "reviews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Review"
+            }
+          },
           "_links": {
             "type": "object",
             "properties": {
@@ -99,6 +187,53 @@
           }
         }
       },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "username": { "type": "string" },
+          "role": { "type": "string", "enum": ["user", "editor", "admin"] },
+          "_links": {
+            "type": "object",
+            "properties": {
+              "self": {
+                "type": "object",
+                "properties": {
+                  "href": { "type": "string" }
+                }
+              },
+              "assign_role": {
+                "type": "object",
+                "properties": {
+                  "href": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "UserList": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
+          },
+          "_links": {
+            "type": "object",
+            "properties": {
+              "self": {
+                "type": "object",
+                "properties": {
+                  "href": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      },
       "ErrorResponse": {
         "type": "object",
         "properties": {
@@ -114,6 +249,95 @@
               }
             }
           }
+        }
+      },
+      "TokenInfo": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "integer" },
+              "username": { "type": "string" },
+              "role": { "type": "string", "enum": ["user", "editor", "admin"] }
+            }
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["books:read", "reviews:read", "reviews:write"]
+          }
+        }
+      }
+    },
+    "parameters": {
+      "pageParam": {
+        "in": "query",
+        "name": "page",
+        "schema": {
+          "type": "integer",
+          "default": 1,
+          "minimum": 1
+        },
+        "description": "Page number for pagination"
+      },
+      "limitParam": {
+        "in": "query",
+        "name": "limit",
+        "schema": {
+          "type": "integer",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 50
+        },
+        "description": "Number of items per page"
+      },
+      "authorParam": {
+        "in": "query",
+        "name": "author",
+        "schema": {
+          "type": "string"
+        },
+        "description": "Filter books by author name (partial match)"
+      },
+      "genreParam": {
+        "in": "query",
+        "name": "genre",
+        "schema": {
+          "type": "string"
+        },
+        "description": "Filter books by genre (partial match)"
+      },
+      "yearParam": {
+        "in": "query",
+        "name": "year",
+        "schema": {
+          "type": "integer"
+        },
+        "description": "Filter books by published year"
+      },
+      "titleParam": {
+        "in": "query",
+        "name": "title",
+        "schema": {
+          "type": "string"
+        },
+        "description": "Filter books by title (partial match)"
+      }
+    },
+    "headers": {
+      "ETag": {
+        "description": "Entity tag for the resource",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "If-None-Match": {
+        "description": "Used for conditional requests to check if resource has changed",
+        "schema": {
+          "type": "string"
         }
       }
     }
@@ -151,7 +375,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": { "type": "string" }
+                    "message": { "type": "string", "example": "User registered successfully" },
+                    "username": { "type": "string" },
+                    "role": { "type": "string", "default": "user" }
                   }
                 }
               }
@@ -173,17 +399,20 @@
     "/login": {
       "post": {
         "summary": "Authenticate user and get JWT token",
+        "description": "Authentication using Basic Auth header. Returns a JWT token with role and scope-based permissions.",
         "security": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
-              }
-            }
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^Basic [A-Za-z0-9+/=]+"
+            },
+            "description": "Basic authentication header with base64 encoded username:password"
           }
-        },
+        ],
         "responses": {
           "200": {
             "description": "Login successful",
@@ -208,36 +437,104 @@
         }
       }
     },
-    "/books": {
+    "/check-token": {
       "get": {
-        "summary": "Get a list of all books",
+        "summary": "Verify and check token details",
+        "description": "Returns information about the current user's token including role and scopes",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
-            "description": "A list of books with HATEOAS links",
+            "description": "Token information",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "books": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Book"
-                      }
-                    },
-                    "_links": {
-                      "type": "object",
-                      "properties": {
-                        "self": {
-                          "type": "object",
-                          "properties": {
-                            "href": { "type": "string" }
-                          }
-                        }
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/TokenInfo"
                 }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/books": {
+      "get": {
+        "summary": "Get a list of all books",
+        "description": "Returns a paginated list of books with optional filtering. Requires 'books:read' scope.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/pageParam"
+          },
+          {
+            "$ref": "#/components/parameters/limitParam"
+          },
+          {
+            "$ref": "#/components/parameters/authorParam"
+          },
+          {
+            "$ref": "#/components/parameters/genreParam"
+          },
+          {
+            "$ref": "#/components/parameters/yearParam"
+          },
+          {
+            "$ref": "#/components/parameters/titleParam"
+          },
+          {
+            "in": "header",
+            "name": "If-None-Match",
+            "schema": {
+              "type": "string"
+            },
+            "description": "ETag from a previous request for conditional GET"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A paginated list of books with HATEOAS links",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "ETag for caching"
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Cache control directives"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookList"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not modified - Resource has not changed",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "ETag for caching"
               }
             }
           },
@@ -250,11 +547,22 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Forbidden - Missing required scope 'books:read'",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       },
       "post": {
-        "summary": "Add a new book (requires editor role)",
+        "summary": "Add a new book",
+        "description": "Add a new book to the library. Requires 'books:write' scope (available to editor and admin roles).",
         "requestBody": {
           "required": true,
           "content": {
@@ -307,7 +615,7 @@
             }
           },
           "403": {
-            "description": "Forbidden - Insufficient permissions",
+            "description": "Forbidden - Missing required scope 'books:write'",
             "content": {
               "application/json": {
                 "schema": {
@@ -322,6 +630,7 @@
     "/book/{id}": {
       "get": {
         "summary": "Get a book by ID",
+        "description": "Returns detailed information about a specific book. Requires 'books:read' scope.",
         "parameters": [
           {
             "in": "path",
@@ -330,11 +639,33 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "in": "header",
+            "name": "If-None-Match",
+            "schema": {
+              "type": "string"
+            },
+            "description": "ETag from a previous request for conditional GET"
           }
         ],
         "responses": {
           "200": {
             "description": "The details of the book with HATEOAS links",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "ETag for caching"
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Cache control directives"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -343,8 +674,29 @@
               }
             }
           },
+          "304": {
+            "description": "Not modified - Resource has not changed",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "ETag for caching"
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Missing required scope 'books:read'",
             "content": {
               "application/json": {
                 "schema": {
@@ -366,7 +718,8 @@
         }
       },
       "put": {
-        "summary": "Update a book by ID (requires editor role)",
+        "summary": "Update a book by ID",
+        "description": "Update an existing book. Requires 'books:write' scope (available to editor and admin roles).",
         "parameters": [
           {
             "in": "path",
@@ -391,7 +744,8 @@
                   "book_description": { "type": "string" },
                   "genre": { "type": "string" },
                   "average_rating": { "type": "number", "format": "float" }
-                }
+                },
+                "required": ["title", "author", "published_year"]
               }
             }
           }
@@ -407,6 +761,16 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Unauthorized",
             "content": {
@@ -418,7 +782,7 @@
             }
           },
           "403": {
-            "description": "Forbidden - Insufficient permissions",
+            "description": "Forbidden - Missing required scope 'books:write'",
             "content": {
               "application/json": {
                 "schema": {
@@ -440,7 +804,8 @@
         }
       },
       "delete": {
-        "summary": "Delete a book by ID (requires editor role)",
+        "summary": "Delete a book by ID",
+        "description": "Delete a book and its associated reviews. Requires 'books:write' scope (available to editor and admin roles).",
         "parameters": [
           {
             "in": "path",
@@ -487,7 +852,7 @@
             }
           },
           "403": {
-            "description": "Forbidden - Insufficient permissions",
+            "description": "Forbidden - Missing required scope 'books:write'",
             "content": {
               "application/json": {
                 "schema": {
@@ -512,6 +877,7 @@
     "/book/{bookId}/reviews": {
       "get": {
         "summary": "Get all reviews for a specific book",
+        "description": "Returns all reviews for a given book. Requires 'reviews:read' scope.",
         "parameters": [
           {
             "in": "path",
@@ -520,46 +886,50 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "in": "header",
+            "name": "If-None-Match",
+            "schema": {
+              "type": "string"
+            },
+            "description": "ETag from a previous request for conditional GET"
           }
         ],
         "responses": {
           "200": {
             "description": "A list of reviews for the book with HATEOAS links",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "ETag for caching"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "reviews": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Review"
-                      }
-                    },
-                    "_links": {
-                      "type": "object",
-                      "properties": {
-                        "self": {
-                          "type": "object",
-                          "properties": {
-                            "href": { "type": "string" }
-                          }
-                        },
-                        "book": {
-                          "type": "object",
-                          "properties": {
-                            "href": { "type": "string" }
-                          }
-                        }
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ReviewList"
                 }
               }
             }
           },
+          "304": {
+            "description": "Not modified - Resource has not changed"
+          },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Missing required scope 'reviews:read'",
             "content": {
               "application/json": {
                 "schema": {
@@ -581,7 +951,8 @@
         }
       },
       "post": {
-        "summary": "Add a review for a specific book (requires user role)",
+        "summary": "Add a review for a specific book",
+        "description": "Add a review for a book. Requires 'reviews:write' scope (available to all authenticated users).",
         "parameters": [
           {
             "in": "path",
@@ -600,7 +971,12 @@
                 "type": "object",
                 "properties": {
                   "review_text": { "type": "string" },
-                  "rating": { "type": "integer" }
+                  "rating": { 
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5,
+                    "description": "Rating from 1 to 5"
+                  }
                 },
                 "required": ["review_text", "rating"]
               }
@@ -639,7 +1015,7 @@
             }
           },
           "403": {
-            "description": "Forbidden - Insufficient permissions",
+            "description": "Forbidden - Missing required scope 'reviews:write'",
             "content": {
               "application/json": {
                 "schema": {
@@ -664,6 +1040,7 @@
     "/review/{id}": {
       "get": {
         "summary": "Get a specific review by ID",
+        "description": "Returns details of a specific review. Requires 'reviews:read' scope.",
         "parameters": [
           {
             "in": "path",
@@ -672,11 +1049,27 @@
             "schema": {
               "type": "integer"
             }
+          },
+          {
+            "in": "header",
+            "name": "If-None-Match",
+            "schema": {
+              "type": "string"
+            },
+            "description": "ETag from a previous request for conditional GET"
           }
         ],
         "responses": {
           "200": {
             "description": "Review details with HATEOAS links",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "ETag for caching"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -685,8 +1078,21 @@
               }
             }
           },
+          "304": {
+            "description": "Not modified - Resource has not changed"
+          },
           "401": {
             "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Missing required scope 'reviews:read'",
             "content": {
               "application/json": {
                 "schema": {
@@ -708,7 +1114,8 @@
         }
       },
       "put": {
-        "summary": "Update a review by ID (requires editor role)",
+        "summary": "Update a review by ID",
+        "description": "Update an existing review. Requires 'reviews:write' scope.",
         "parameters": [
           {
             "in": "path",
@@ -727,7 +1134,12 @@
                 "type": "object",
                 "properties": {
                   "review_text": { "type": "string" },
-                  "rating": { "type": "integer" }
+                  "rating": { 
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5,
+                    "description": "Rating from 1 to 5"
+                  }
                 },
                 "required": ["review_text", "rating"]
               }
@@ -756,7 +1168,7 @@
             }
           },
           "403": {
-            "description": "Forbidden - Insufficient permissions",
+            "description": "Forbidden - Missing required scope 'reviews:write'",
             "content": {
               "application/json": {
                 "schema": {
@@ -778,7 +1190,8 @@
         }
       },
       "delete": {
-        "summary": "Delete a review by ID (requires editor role)",
+        "summary": "Delete a review by ID",
+        "description": "Delete a review. Requires 'reviews:delete' scope (available to editor and admin roles).",
         "parameters": [
           {
             "in": "path",
@@ -825,7 +1238,7 @@
             }
           },
           "403": {
-            "description": "Forbidden - Insufficient permissions",
+            "description": "Forbidden - Missing required scope 'reviews:delete'",
             "content": {
               "application/json": {
                 "schema": {
@@ -849,55 +1262,15 @@
     },
     "/admin/users": {
       "get": {
-        "summary": "List all users (requires admin role)",
+        "summary": "List all users",
+        "description": "List all users with their roles. Requires 'users:read' scope (available to admin role only).",
         "responses": {
           "200": {
             "description": "List of users with their roles",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "users": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": { "type": "integer" },
-                          "username": { "type": "string" },
-                          "role": { "type": "string" },
-                          "_links": {
-                            "type": "object",
-                            "properties": {
-                              "self": {
-                                "type": "object",
-                                "properties": {
-                                  "href": { "type": "string" }
-                                }
-                              },
-                              "assign_role": {
-                                "type": "object",
-                                "properties": {
-                                  "href": { "type": "string" }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    },
-                    "_links": {
-                      "type": "object",
-                      "properties": {
-                        "self": {
-                          "type": "object",
-                          "properties": {
-                            "href": { "type": "string" }
-                          }
-                        }
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/UserList"
                 }
               }
             }
@@ -913,7 +1286,7 @@
             }
           },
           "403": {
-            "description": "Forbidden - Insufficient permissions",
+            "description": "Forbidden - Missing required scope 'users:read'",
             "content": {
               "application/json": {
                 "schema": {
@@ -927,7 +1300,8 @@
     },
     "/admin/users/{userId}/role": {
       "put": {
-        "summary": "Assign a role to a user (requires admin role)",
+        "summary": "Assign a role to a user",
+        "description": "Change a user's role. Requires 'users:write' scope (available to admin role only).",
         "parameters": [
           {
             "in": "path",
@@ -947,7 +1321,8 @@
                 "properties": {
                   "role": { 
                     "type": "string",
-                    "enum": ["user", "editor", "admin"]
+                    "enum": ["user", "editor", "admin"],
+                    "description": "Role to assign to the user"
                   }
                 },
                 "required": ["role"]
@@ -1001,7 +1376,7 @@
             }
           },
           "403": {
-            "description": "Forbidden - Insufficient permissions",
+            "description": "Forbidden - Missing required scope 'users:write'",
             "content": {
               "application/json": {
                 "schema": {
@@ -1025,7 +1400,8 @@
     },
     "/admin/users/{userId}": {
       "delete": {
-        "summary": "Delete a user (requires admin role)",
+        "summary": "Delete a user",
+        "description": "Delete a user from the system. Requires 'users:delete' scope (available to admin role only).",
         "parameters": [
           {
             "in": "path",
@@ -1072,7 +1448,7 @@
             }
           },
           "403": {
-            "description": "Forbidden - Insufficient permissions",
+            "description": "Forbidden - Missing required scope 'users:delete'",
             "content": {
               "application/json": {
                 "schema": {

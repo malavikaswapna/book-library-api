@@ -90,7 +90,12 @@ function BookEdit() {
         }
       );
 
+      localStorage.setItem('refreshBooks', 'true');
+
+      if (window.refreshBooksList) window.refreshBooksList();
+
       navigate(`/book/${id}`);
+      window.location.href = '/books';
     } catch (error) {
       console.error('Error updating book:', error);
 
@@ -106,7 +111,7 @@ function BookEdit() {
   };
 
   const handleCancel = () => {
-    navigate(`/book/${id}`);
+    navigate(`/book/${id}`, { state: { bookUpdated: true } });
   };
 
   if (loading) {

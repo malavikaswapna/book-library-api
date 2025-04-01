@@ -30,17 +30,22 @@ app.use(async (ctx, next) => {
   await next();
 
   if (ctx.method === 'GET' && (ctx.status === 200 || ctx.status === 304) && ctx.body) {
+    if (ctx.response.get('Transfer-Encoding') === 'chunked') return;
 
     if (!ctx.response.get('ETag')) {
       const bodyString = JSON.stringify(ctx.body);
-      const etag = `"${Buffer.from(bodyString).toString('base64')}"`;
+      const hash = require('crypto').createHash('sha1').update(bodyString).digest('hex');
+      const etag = `"${hash}"`;
       ctx.set('ETag', etag);
+
+      ctx.set('Cache-Control', 'private, max-age=60');
     }
 
     const ifNoneMatch = ctx.request.get ('If-None-Match');
     if (ifNoneMatch && ifNoneMatch === ctx.response.get('ETag')) {
       ctx.status = 304;
       ctx.body = null;
+      console.log('Returning 304 Not Modified');
     }
   }
 });

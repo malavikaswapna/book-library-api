@@ -57,4 +57,48 @@ const authorize = (requiredRole) => async (ctx, next) => {
   }
 };
 
-module.exports = { authorize };
+const checkScope = (requiredScope) => async (ctx, next) => {
+  console.log(`In checkScope middleware, required scope: ${requiredScope}`);
+
+  if (!ctx.state || !ctx.state.user || !ctx.state.user.id) {
+    console.log('Missing user in context state');
+    ctx.status = 401;
+    ctx.body = {
+      message: 'Authentication required',
+      _links: {
+        login: { href: '/login' }
+      }
+    };
+    return;
+  }
+
+  try {
+    const userScopes = ctx.state.user.scopes || [];
+    console.log(`User ${ctx.state.user.username} has scopes:`, userScopes);
+
+    if (userScopes.includes(requiredScope)) {
+      console.log(`Scope check successful: User has required scope '${requiredScope}'`);
+      await next();
+    } else {
+      console.log(`Scope check failed: User lacks required scope '${requiredScope}'`);
+      ctx.status = 403;
+      ctx.body = {
+        message: 'Insufficient permissions - required scope not granted',
+        _links: {
+          login: { href: '/login' }
+        }
+      };
+    }
+  } catch (error) {
+    console.error(`Scope authorization error:`, error);
+    ctx.status = 500;
+    ctx.body = {
+      message: 'Internal server error during scope authorization',
+      _links: {
+        login: { href: '/login' }
+      }
+    };
+  }
+};
+
+module.exports = { authorize, checkScope };
