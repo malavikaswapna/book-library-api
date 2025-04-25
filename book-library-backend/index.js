@@ -113,13 +113,12 @@ app.use(adminRoutes.routes()).use(adminRoutes.allowedMethods());
 // Create HTTP server
 const server = http.createServer(app.callback());
 
-// Start the server
-if (process.env.NODE_ENV !== 'test') {
-  server.listen(1025, '0.0.0.0', () => {
-    console.log('Server running on https://harlembazaar-londonfiber-1025.codio-box.uk');
-    console.log('API documentation available at https://harlembazaar-londonfiber-1025.codio-box.uk/docs');
-  });
-}
+// Near the bottom of index.js
+const PORT = process.env.PORT || 1025;
+
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 // Export server for testing
 module.exports = server;
